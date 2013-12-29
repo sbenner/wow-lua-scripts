@@ -15,8 +15,10 @@ local updateTable = {TITAN_ORE_ID, TITAN_PANEL_UPDATE_BUTTON} ;
 -- ******************************** Variables *******************************
 local L = LibStub("AceLocale-3.0"):GetLocale("Titan", true)
 local AceTimer = LibStub("AceTimer-3.0")
-local BagTimer
+local BagTimer;
 local counted=0;
+local oreName,_=GetItemInfo("72092");
+local barName,_=GetItemInfo("72096");
 -- ******************************** Functions *******************************
 
 -- **************************************************************************
@@ -24,22 +26,24 @@ local counted=0;
 -- DESC : Registers the plugin upon it loading
 -- **************************************************************************
 function TitanPanelOreButton_OnLoad(self)
-	 counted =  getOreCountInBags(); 
+
+ counted =  getOreCountInBags(); 
+
 	self.registry = {
 		id = TITAN_ORE_ID,
 		category = "Built-ins",
 		version = TITAN_VERSION,
-		menuText = "Ghost Iron Ore Counter Menu",
+		menuText = "Ghost Iron Counter",
 		buttonTextFunction = "TitanPanelOreButton_GetButtonText", 
-		tooltipTitle = L["TITAN_ORE_TOOLTIP"],
+		tooltipTitle = "Ghost Iron Info" ,
 		tooltipTextFunction = "TitanPanelOreButton_GetTooltipText", 
 		icon = "Interface\\Icons\\inv_ore_ghostiron",
 		iconWidth = 16,
 		controlVariables = {
 			ShowIcon = true,
 			ShowLabelText = true,
-			ShowRegularText = false,
-			ShowColoredText = true,
+			ShowRegularText = true,
+			ShowColoredText = false,
 			DisplayOnRightSide = false,
 		},
 
@@ -49,7 +53,7 @@ function TitanPanelOreButton_OnLoad(self)
                         ShowDetailedInfo = 1,
 			ShowIcon = 1,
 			ShowLabelText = 1,
-			ShowColoredText = 1,               
+			ShowColoredText = 0,               
 		}
 	};     
 
@@ -77,16 +81,26 @@ function TitanPanelOreButton_OnUpdate(self)
 	-- remove until the next bag event
 
 local bagText = getOreCountInBags();
-local oreName,link,_ = GetItemInfo("72092")    
 --      end
+
+if(not barName) then
+barName,_=GetItemInfo("72096")
+end
+
+if(not oreName) then
+oreName,_=GetItemInfo("72092")
+end
+
+
+
+local bars = floor(bagText/2);
+local bName = bars>1 and barName.."s" or barName;  
 
         if (TitanGetVar(TITAN_ORE_ID, "ShowFloatingText") and counted ~= bagText ) then
 	    counted = getOreCountInBags();
-            print("Total "..oreName.." pcs gathered: "..bagText)
-            UIErrorsFrame:AddMessage("Total "..oreName.." pcs gathered: "..bagText, 1.0, 0.0, 0.0, 53, 2);
+            print("Total "..oreName.." pcs gathered: "..bagText.." to make "..bars.." "..bName)
+            UIErrorsFrame:AddMessage(oreName.." pcs gathered "..bagText.." to make "..bars.." "..bName, 1.0, 0.0, 0.0, 53, 2);
         end
-
-
 
 	self:SetScript("OnUpdate", nil)
 end
@@ -114,15 +128,13 @@ function TitanPanelOreButton_GetButtonText(id)
 --	if (TitanGetVar(TITAN_ORE_ID, "ShowOreCount")) then
 	bagText = getOreCountInBags();
 --	end
+local bars = floor(bagText/2);
+local bName = bars>1 and "Bars" or "Bar"
 
-	if ( TitanGetVar(TITAN_ORE_ID, "ShowColoredText") ) then     
-		color = TitanUtils_GetThresholdColor(TITAN_BAG_THRESHOLD_TABLE, bagText);
-		bagRichText = TitanUtils_GetColoredText(bagText, color);
-	else
-		bagRichText = TitanUtils_GetHighlightText(bagText);
-	end
+	bagRichText = TitanUtils_GetHighlightText(bagText.."/"..bars);
+	
 
-	return "Ores: ", bagRichText;
+	return oreName.."/"..bName..": ", bagRichText;
 end
 
 
@@ -133,14 +145,21 @@ function TitanPanelOreButton_GetTooltipText(id)
         local bagText, bagRichText, color;
               bagText = getOreCountInBags();
 
-        if ( TitanGetVar(TITAN_ORE_ID, "ShowColoredText") ) then
-                color = TitanUtils_GetThresholdColor(TITAN_BAG_THRESHOLD_TABLE, bagText);
-                bagRichText = TitanUtils_GetColoredText(bagText, color);
-        else
-                bagRichText = TitanUtils_GetHighlightText(bagText);
-        end
+              bagRichText = TitanUtils_GetHighlightText(bagText);
 
-        return "Ores: "..bagRichText;
+
+if(not barName) then
+barName,_=GetItemInfo("72096")
+end
+
+if(not oreName) then
+oreName,_=GetItemInfo("72092")
+end
+
+local bars = floor(bagText/2);
+local bName = bars>1 and barName.."s" or barName        
+
+        return oreName.." pcs: "..bagRichText.."\n"..bName.." can be made: "..TitanUtils_GetHighlightText(bars);
 end
 
 function getOreCountInBags()
@@ -183,6 +202,7 @@ function TitanPanelRightClickMenu_PrepareOreMenu()
 			info.func = TitanPanelOreButton_ShowDetailedInfo;
 			info.checked = TitanGetVar(TITAN_ORE_ID, "ShowDetailedInfo");
 			UIDropDownMenu_AddButton(info, _G["UIDROPDOWNMENU_MENU_LEVEL"]);
+	
 		end
 		return
 	end
@@ -200,7 +220,7 @@ function TitanPanelRightClickMenu_PrepareOreMenu()
 	TitanPanelRightClickMenu_AddSpacer();     
 	TitanPanelRightClickMenu_AddToggleIcon(TITAN_ORE_ID);
 	TitanPanelRightClickMenu_AddToggleLabelText(TITAN_ORE_ID);
-	TitanPanelRightClickMenu_AddToggleColoredText(TITAN_ORE_ID);
+	--TitanPanelRightClickMenu_AddToggleColoredText(TITAN_ORE_ID);
 	TitanPanelRightClickMenu_AddSpacer();     
 	TitanPanelRightClickMenu_AddCommand(L["TITAN_PANEL_MENU_HIDE"], TITAN_ORE_ID, TITAN_PANEL_MENU_FUNC_HIDE);
 end
