@@ -50,7 +50,6 @@ function TitanPanelOreButton_OnLoad(self)
 		savedVariables = {
 	--		ShowOreCount = 1,
                         ShowFlotatingText = 1,
-                        ShowDetailedInfo = 1,
 			ShowIcon = 1,
 			ShowLabelText = 1,
 			ShowColoredText = 0,               
@@ -131,12 +130,10 @@ function TitanPanelOreButton_GetButtonText(id)
 local bars = floor(bagText/2);
 local bName = bars>1 and "Bars" or "Bar"
 
-	bagRichText = TitanUtils_GetHighlightText(bagText.."/"..bars);
-	
+	bagRichText = TitanUtils_GetHighlightText(bagText.."="..bars);
 
-	return oreName.."/"..bName..": ", bagRichText;
+	return oreName.."="..bName..": ", bagRichText;
 end
-
 
 
 function TitanPanelOreButton_GetTooltipText(id)
@@ -149,11 +146,11 @@ function TitanPanelOreButton_GetTooltipText(id)
 
 
 if(not barName) then
-barName,_=GetItemInfo("72096")
+	barName,_=GetItemInfo("72096")
 end
 
 if(not oreName) then
-oreName,_=GetItemInfo("72092")
+	oreName,_=GetItemInfo("72092")
 end
 
 local bars = floor(bagText/2);
@@ -190,19 +187,17 @@ function TitanPanelRightClickMenu_PrepareOreMenu()
 		if _G["UIDROPDOWNMENU_MENU_VALUE"] == "Options" then
 
 			TitanPanelRightClickMenu_AddTitle(L["TITAN_PANEL_OPTIONS"], _G["UIDROPDOWNMENU_MENU_LEVEL"])
-
+			local temptable = {TITAN_ORE_ID, "ShowFloatingText"};
 			info = {};
                         info.text = "Show Floating Text"; 
-                        info.func = TitanPanelOreButton_ShowFloatingText;
+			info.value = temptable;
+                        info.func = function()
+                                TitanPanelRightClickMenu_ToggleVar(temptable)
+                        end
                         info.checked = TitanGetVar(TITAN_ORE_ID, "ShowFloatingText");
+			info.keepShownOnClick = 1;
                         UIDropDownMenu_AddButton(info, _G["UIDROPDOWNMENU_MENU_LEVEL"]);
 
-			info = {};
-			info.text = L["TITAN_BAG_MENU_SHOW_DETAILED"];
-			info.func = TitanPanelOreButton_ShowDetailedInfo;
-			info.checked = TitanGetVar(TITAN_ORE_ID, "ShowDetailedInfo");
-			UIDropDownMenu_AddButton(info, _G["UIDROPDOWNMENU_MENU_LEVEL"]);
-	
 		end
 		return
 	end
@@ -225,18 +220,3 @@ function TitanPanelRightClickMenu_PrepareOreMenu()
 	TitanPanelRightClickMenu_AddCommand(L["TITAN_PANEL_MENU_HIDE"], TITAN_ORE_ID, TITAN_PANEL_MENU_FUNC_HIDE);
 end
 
--- **************************************************************************
--- NAME : TitanPanelOreButton_ShowUsedSlots()
--- DESC : Set option to show used slots
--- **************************************************************************
-
-
-function TitanPanelOreButton_ShowFloatingText()
-        TitanSetVar(TITAN_ORE_ID, "ShowFloatingText", 1);
-        TitanPanelButton_UpdateButton(TITAN_ORE_ID);
-end
-
-function TitanPanelOreButton_ShowDetailedInfo()
-	TitanSetVar(TITAN_ORE_ID, "ShowDetailedInfo", 1);
-        TitanPanelButton_UpdateButton(TITAN_ORE_ID);
-end
