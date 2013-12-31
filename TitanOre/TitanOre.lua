@@ -17,8 +17,8 @@ local L = LibStub("AceLocale-3.0"):GetLocale("Titan", true)
 local AceTimer = LibStub("AceTimer-3.0")
 local BagTimer;
 local counted=0;
-local oreName,_=GetItemInfo("72092");
-local barName,_=GetItemInfo("72096");
+local oreName;
+local barName;
 -- ******************************** Functions *******************************
 
 -- **************************************************************************
@@ -77,20 +77,8 @@ end
 function TitanPanelOreButton_OnUpdate(self)
 	-- update the button
 	TitanPanelPluginHandle_OnUpdate(updateTable)
-	-- remove until the next bag event
 
 local bagText = getOreCountInBags();
---      end
-
-if(not barName) then
-barName,_=GetItemInfo("72096")
-end
-
-if(not oreName) then
-oreName,_=GetItemInfo("72092")
-end
-
-
 
 local bars = floor(bagText/2);
 local bName = bars>1 and barName.."s" or barName;  
@@ -121,12 +109,14 @@ end
 -- VARS : id = button ID
 -- **************************************************************************
 function TitanPanelOreButton_GetButtonText(id)
+
 	local button, id = TitanUtils_GetButton(id, true);
 
-	local bagText, bagRichText, color;
---	if (TitanGetVar(TITAN_ORE_ID, "ShowOreCount")) then
+	local bagText, bagRichText;
 	bagText = getOreCountInBags();
---	end
+
+initNames(); --global vars
+
 local bars = floor(bagText/2);
 local bName = bars>1 and "Bars" or "Bar"
 
@@ -136,22 +126,26 @@ local bName = bars>1 and "Bars" or "Bar"
 end
 
 
-function TitanPanelOreButton_GetTooltipText(id)
-        local button, id = TitanUtils_GetButton(id, true);
-
-        local bagText, bagRichText, color;
-              bagText = getOreCountInBags();
-
-              bagRichText = TitanUtils_GetHighlightText(bagText);
-
-
+function initNames()
 if(not barName) then
-	barName,_=GetItemInfo("72096")
+        barName,_=GetItemInfo("72096")
 end
 
 if(not oreName) then
-	oreName,_=GetItemInfo("72092")
+        oreName,_=GetItemInfo("72092")
 end
+end
+
+
+function TitanPanelOreButton_GetTooltipText(id)
+
+
+        local button, id = TitanUtils_GetButton(id, true);
+
+        local bagText, bagRichText;
+              bagText = getOreCountInBags();
+
+              bagRichText = TitanUtils_GetHighlightText(bagText);
 
 local bars = floor(bagText/2);
 local bName = bars>1 and barName.."s" or barName        
@@ -182,6 +176,7 @@ end
 -- **************************************************************************
 function TitanPanelRightClickMenu_PrepareOreMenu()
 	local info
+
 	-- level 2
 	if _G["UIDROPDOWNMENU_MENU_LEVEL"] == 2 then
 		if _G["UIDROPDOWNMENU_MENU_VALUE"] == "Options" then
